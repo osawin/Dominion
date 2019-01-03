@@ -11,15 +11,16 @@ public class Game
 	}
 	public static class Instance
 	{
-		Player[] group;
-		int[] sizes;
-		Card[] available;
-		int num_players;
+		Player[] group;   //an array of all the players
+		int[] sizes;      //how many of each card type is available
+		Card[] available; //what card types are available
+		int num_players;  //how many players are in the game
+		const int num_cards = 16;
 		
 		public Instance()
 		{
-			this.sizes = new int[16];
-			this.available = new Card[16];
+			this.sizes = new int[this.num_cards];
+			this.available = new Card[this.num_cards];
 			this.num_players = 3;
 			this.group = new Player[this.num_players];
 			int i = 0;
@@ -49,16 +50,21 @@ public class Game
 			}
 		}
 	
+		//checks if any of the end conditions of the game are over/
+		//there are two:
+		//    there are no provinces left to buy,
+		//    there are three different cards for which there are none left to buy.
 		private boolean notOver()
 		{
 			return true;
 		}
 	
+		//prints all cards available to buy
 		public void printAvailable()
 		{
 		}
 	
-		public class Card {
+		public abstract class Card {
 			public boolean isAction;
 			public int treasure;
 			public int points;
@@ -72,9 +78,7 @@ public class Game
 				this.name = "";
 				this.cost = 0;
 			}
-			public void play(Player person)
-			{
-			}
+			public abstract void play(Player person);
 		}	
 	
 		public class Copper extends Card{
@@ -83,6 +87,11 @@ public class Game
 				super();
 				this.treasure = 1;
 				this.name = "Copper";
+			}
+			
+			public void play(Player Person)
+			{
+				System.out.println("Copper is not an action");
 			}
 		}
 
@@ -110,6 +119,11 @@ public class Game
 				this.name = "Estate";
 				this.cost = 2;
 			}
+			
+			public void play(Player Person)
+			{
+				System.out.println("Estate is not an action");
+			}
 		}
 	
 		public class Player {
@@ -135,8 +149,15 @@ public class Game
 				this.discard.add(new Estate());
 				this.discard.add(new Estate());
 				this.addDiscard();
+				this.draw();
+				this.draw();
+				this.draw();
+				this.draw();
+				this.draw();
 			}
 		
+			//Shuffles the discard and adds it to the bottom of the deck.
+			//most commonly used when attempting to draw when there are no cards in the deck.
 			private void addDiscard()
 			{
 				Random shuffle = new Random();
@@ -150,6 +171,9 @@ public class Game
 				}
 			}
 		
+		
+			//add the top card from the deck to the hand
+			//if there are no cards in the deck, add the discard to it before drawing
 			public void draw()
 			{
 				if (this.deck.isEmpty())
@@ -157,6 +181,7 @@ public class Game
 					if (!this.discard.isEmpty())
 					{
 						this.addDiscard();
+						this.draw();
 					}
 				}
 				else
@@ -166,6 +191,7 @@ public class Game
 				}
 			}
 		
+			//prints out the cards in the hand
 			private void printHand()
 			{
 				int i = 0;
@@ -185,7 +211,7 @@ public class Game
 				String answer;
 				int index;
 				Scanner in = new Scanner(System.in);
-				while (actions > 1)
+				while (actions > 0) //a player may play 1 action card on their turn, but some actions allow you to play more
 				{
 					System.out.println("Would you like to play an action? Y/N");
 					answer = in.nextLine();
@@ -201,7 +227,7 @@ public class Game
 						}
 						else
 						{
-							this.actions = 0;
+							System.out.println("That is outside the range of the hand");
 						}
 					}
 					else
@@ -213,9 +239,10 @@ public class Game
 				while (index < this.hand.size())
 				{
 					this.gold += this.hand.get(index).treasure;
+					index++;
 				}
 				Instance.this.printAvailable();
-				while (buys > 0)
+				while (buys > 0) //a player may buy 1 card, but some actions allow them to buy more
 				{
 					System.out.println("Which card would you like to buy? (Type index, 0-based, -1 to not buy anything)");
 					index = in.nextInt();
