@@ -48,9 +48,9 @@ public class Game
 			this.sizes[8] = 10;
 			this.available[8] = new Smithy();
 			this.sizes[9] = 10;
-			this.available[9] = new Feast();
+			this.available[9] = new Throne_Room();
 			this.sizes[10] = 10;
-			this.available[10] = new Throne_Room();
+			this.available[10] = new Library();
 			this.sizes[11] = 10;
 			this.available[11] = new Moneylender();
 			this.sizes[12] = 10;
@@ -216,8 +216,19 @@ public class Game
 		
 			public void play(Player person)
 			{
-				person.draw();
-				person.actions += 2;
+				System.out.println("Pick a card costing up to 4? (Type index, 0-based, invalid indices will lead to no card being gained)");
+				Instance.this.printAvailable();
+				Scanner in = new Scanner(System.in);
+				int index = in.nextInt();
+				in.nextLine();
+				if (index > -1 && index < 16)
+				{
+					if (Instance.this.available[index].cost <= 4 && Instance.this.sizes[index]>0)
+					{
+						person.discard.add(Instance.this.available[index]);
+						Instance.this.sizes[index]--;
+					}
+				}
 			}
 		}
 
@@ -257,7 +268,7 @@ public class Game
 				if (index >= 0 && index < person.hand.size())
 				{
 					Card played = person.hand.get(index);
-					person.discard.add(played);
+					person.play.add(played);
 					person.hand.remove(index);
 					played.play(person);
 					played.play(person);
@@ -292,19 +303,52 @@ public class Game
 			}
 		}
 
-		public class Feast extends Card{
-			public Feast()
+		public class Library extends Card{
+			public Library()
 			{
 				super();
 				this.isAction = true;
-				this.name = "Feast";
-				this.cost = 4;
+				this.name = "Library";
+				this.cost = 5;
 			}
 		
 			public void play(Player person)
 			{
-				person.draw();
-				person.actions += 2;
+				Scanner in = new Scanner(System.in);
+				while (person.hand.size() < 7)
+				{
+					if (person.deck.isEmpty())
+					{
+						if (person.discard.isEmpty())
+						{
+							break;
+						}
+						person.addDiscard();
+					}
+					else
+					{
+						Card revealed = person.deck.get(0);
+						person.deck.remove(0);
+						if (revealed.isAction)
+						{
+							String text = "Do you want to draw a " + revealed.name + "(Y/N)";
+							System.out.println(text);
+							String answer = in.nextLine();
+							if (answer.equals("Y"))
+							{
+								person.hand.add(revealed);
+							}
+							else
+							{
+								person.discard.add(revealed);
+							}
+						}
+						else
+						{
+							person.hand.add(revealed);
+						}
+					}
+				}
 			}
 		}
 
@@ -355,7 +399,19 @@ public class Game
 			public void play(Player person)
 			{
 				person.draw();
-				person.actions += 2;
+				person.draw();
+				person.draw();
+				person.draw();
+				person.buys++;
+				int i = 0;
+				while (i < Instance.this.num_players)
+				{
+					if (i != person.id)
+					{
+						Instance.this.group[i].draw();
+					}
+					i++;
+				}
 			}
 		}
 
@@ -446,6 +502,7 @@ public class Game
 			private ArrayList<Card> hand;
 			private ArrayList<Card> deck;
 			private ArrayList<Card> discard;
+			private ArrayList<Card> play;
 			public int actions;
 			public int gold;
 			public int buys;
@@ -455,6 +512,7 @@ public class Game
 			{	
 				this.id = -1;
 				this.hand = new ArrayList(5);
+				this.play = new ArrayList(5);
 				this.deck = new ArrayList(10);
 				this.discard = new ArrayList(10);
 				this.discard.add(new Copper());
@@ -585,7 +643,7 @@ public class Game
 					if (index >= 0 && index < this.hand.size())
 					{
 						Card played = this.hand.get(index);
-						this.discard.add(played);
+						this.play.add(played);
 						this.hand.remove(index);
 						played.play(this);
 						actions--;
@@ -642,6 +700,8 @@ public class Game
 				this.draw();
 				this.draw();
 				this.draw();
+				this.discard.addAll(this.play);
+				this.play.clear();
 			}
 		}
 	}
