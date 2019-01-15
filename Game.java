@@ -21,7 +21,7 @@ public class Game
 		{
 			this.sizes = new int[this.num_cards];
 			this.available = new Card[this.num_cards];
-			this.num_players = 3;
+			this.num_players = 2;
 			this.group = new Player[this.num_players];
 			int i = 0;
 			while (i < num_players)
@@ -74,6 +74,20 @@ public class Game
 					currentPlayer = 0;
 				}
 			}
+			int winner = 0;
+			int winnerScore = this.group[0].score();
+			int index = 1;
+			while (index < num_players)
+			{
+				if (this.group[index].score() > winnerScore)
+				{
+					winnerScore = this.group[index].score();
+					winner = index;
+				}
+				index++;
+			}
+			String text = "Player " + index + " wins!";
+			System.out.println(text);
 		}
 	
 		//checks if any of the end conditions of the game are over/
@@ -82,7 +96,21 @@ public class Game
 		//    there are three different cards for which there are none left to buy.
 		private boolean notOver()
 		{
-			return true;
+			if (sizes[5] < 1)
+			{
+				return false;
+			}
+			int i = 0;
+			int out = 0;
+			while (i < num_cards)
+			{
+				if (sizes[i] < 1)
+				{
+					out++;
+				}
+				i++;
+			}
+			return (out < 3);
 		}
 	
 		//prints all cards available to buy
@@ -199,13 +227,14 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Smithy";
-				this.cost = 3;
+				this.cost = 4;
 			}
 		
 			public void play(Player person)
 			{
 				person.draw();
-				person.actions += 2;
+				person.draw();
+				person.draw();
 			}
 		}
 
@@ -215,13 +244,24 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Throne Room";
-				this.cost = 3;
+				this.cost = 4;
 			}
 		
 			public void play(Player person)
 			{
-				person.draw();
-				person.actions += 2;
+				person.printHand();
+				System.out.println("Which action would you like to double play? (Type index, 0-based, invalid indices will lead to no action being played)");
+				Scanner in = new Scanner(System.in);
+				int index = in.nextInt();
+				in.nextLine();
+				if (index >= 0 && index < person.hand.size())
+				{
+					Card played = person.hand.get(index);
+					person.discard.add(played);
+					person.hand.remove(index);
+					played.play(person);
+					played.play(person);
+				}
 			}
 		}
 
@@ -231,13 +271,24 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Moneylender";
-				this.cost = 3;
+				this.cost = 4;
 			}
 		
 			public void play(Player person)
 			{
-				person.draw();
-				person.actions += 2;
+				person.printHand();
+				System.out.println("Which copper would you like to trash? (Type index, 0-based, invalid indices will lead to no copper being trashed)");
+				Scanner in = new Scanner(System.in);
+				int index = in.nextInt();
+				in.nextLine();
+				if (index >= 0 && index < person.hand.size())
+				{
+					if (person.hand.get(index).name == "Copper")
+					{
+						person.hand.remove(index);
+						person.gold += 3;
+					}
+				}
 			}
 		}
 
@@ -247,7 +298,7 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Feast";
-				this.cost = 3;
+				this.cost = 4;
 			}
 		
 			public void play(Player person)
@@ -263,13 +314,15 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Market";
-				this.cost = 3;
+				this.cost = 5;
 			}
 		
 			public void play(Player person)
 			{
 				person.draw();
-				person.actions += 2;
+				person.actions += 1;
+				person.gold++;
+				person.buys++;
 			}
 		}
 
@@ -279,13 +332,14 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Festival";
-				this.cost = 3;
+				this.cost = 5;
 			}
 		
 			public void play(Player person)
 			{
-				person.draw();
 				person.actions += 2;
+				person.gold += 2;
+				person.buys++;
 			}
 		}
 
@@ -295,7 +349,7 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Council Room";
-				this.cost = 3;
+				this.cost = 5;
 			}
 		
 			public void play(Player person)
@@ -311,13 +365,35 @@ public class Game
 				super();
 				this.isAction = true;
 				this.name = "Mine";
-				this.cost = 3;
+				this.cost = 5;
 			}
 		
 			public void play(Player person)
 			{
-				person.draw();
-				person.actions += 2;
+				person.printHand();
+				System.out.println("Which treasure would you like to upgrade? (Type index, 0-based, invalid indices will lead to no treasure being upgraded)");
+				Scanner in = new Scanner(System.in);
+				int index = in.nextInt();
+				in.nextLine();
+				if (index >= 0 && index < person.hand.size())
+				{
+					if (person.hand.get(index).name == "Copper")
+					{
+						person.hand.remove(index);
+						person.hand.add(new Silver());
+						Instance.this.sizes[1]--;
+					}
+					else if (person.hand.get(index).name == "Silver")
+					{
+						person.hand.remove(index);
+						person.hand.add(new Gold());
+						Instance.this.sizes[2]--;
+					}
+					else if (person.hand.get(index).name == "Gold")
+					{
+						Instance.this.sizes[2]--;
+					}
+				}
 			}
 		}
 
@@ -398,13 +474,37 @@ public class Game
 				this.draw();
 				this.draw();
 			}
-			
+						
 			public Player(int i)
 			{
 				this();
 				this.id = i;
 			}
-		
+			
+			public int score()
+			{
+				int score = 0;
+				int i = 0;
+				while (i < this.hand.size())
+				{
+					score += this.hand.get(i).points;
+					i++;
+				}
+				i = 0;
+				while (i < this.discard.size())
+				{
+					score += this.discard.get(i).points;
+					i++;
+				}
+				i = 0;
+				while (i < this.deck.size())
+				{
+					score += this.deck.get(i).points;
+					i++;
+				}
+				return score;
+			}
+
 			//Shuffles the discard and adds it to the bottom of the deck.
 			//most commonly used when attempting to draw when there are no cards in the deck.
 			private void addDiscard()
@@ -456,7 +556,8 @@ public class Game
 				int i = 0;
 				while (i < this.hand.size())
 				{
-					System.out.println(this.hand.get(i).name + ", ");
+					String text = i+". "+this.hand.get(i).name;
+					System.out.println(text);
 					i++;
 				}
 			}
@@ -473,27 +574,29 @@ public class Game
 				while (actions > 0) //a player may play 1 action card on their turn, but some actions allow you to play more
 				{
 					this.printHand();
-					System.out.println("Would you like to play an action? Y/N");
-					answer = in.nextLine();
-					if ("Y".equals(answer))
+					String text = "Which action would you like to play? (Type index, 0-based, -1 to not play)";
+					if (this.actions > 1)
 					{
-						this.printHand();
-						System.out.println("Which action would you like to play? (Type index, 0-based)");
-						index = in.nextInt();
-						in.nextLine();
-						if (index >= 0 && index < this.hand.size())
-						{
-							this.hand.get(index).play(this);
-							actions--;
-						}
-						else
-						{
-							System.out.println("That is outside the range of the hand");
-						}
+						text = "You have " + this.actions + " actions." + text;
+					}
+					System.out.println(text);
+					index = in.nextInt();
+					in.nextLine();
+					if (index >= 0 && index < this.hand.size())
+					{
+						Card played = this.hand.get(index);
+						this.discard.add(played);
+						this.hand.remove(index);
+						played.play(this);
+						actions--;
+					}
+					else if (index == -1)
+					{
+						this.actions = 0;
 					}
 					else
 					{
-						this.actions = 0;
+						System.out.println("That is outside the range of the hand");
 					}
 				}
 				index = 0;
@@ -505,6 +608,12 @@ public class Game
 				Instance.this.printAvailable();
 				while (buys > 0) //a player may buy 1 card, but some actions allow them to buy more
 				{
+					String text = "You have " + this.gold + " money";
+					if (this.buys > 1)
+					{
+						text += " and " + this.buys + " buys.";
+					}
+					System.out.println(text);
 					System.out.println("Which card would you like to buy? (Type index, 0-based, -1 to not buy anything)");
 					index = in.nextInt();
 					in.nextLine();
@@ -515,6 +624,7 @@ public class Game
 							this.discard.add(Instance.this.available[index]);
 							this.gold -= Instance.this.available[index].cost;
 							buys--;
+							Instance.this.sizes[index]--;
 						}
 						else
 						{
