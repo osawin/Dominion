@@ -21,7 +21,7 @@ public class Game
 		{
 			this.sizes = new int[this.num_cards];
 			this.available = new Card[this.num_cards];
-			this.num_players = 2;
+			this.num_players = 3;
 			this.group = new Player[this.num_players];
 			int i = 0;
 			while (i < num_players)
@@ -50,9 +50,9 @@ public class Game
 			this.sizes[9] = 10;
 			this.available[9] = new Throne_Room();
 			this.sizes[10] = 10;
-			this.available[10] = new Library();
+			this.available[10] = new Moneylender();
 			this.sizes[11] = 10;
-			this.available[11] = new Moneylender();
+			this.available[11] = new Library();
 			this.sizes[12] = 10;
 			this.available[12] = new Mine();
 			this.sizes[13] = 10;
@@ -63,10 +63,13 @@ public class Game
 			this.available[15] = new Council_Room();
 		}
 		
+		//plays a single game
 		public void play() {
 			int currentPlayer = 0;
 			while (this.notOver())
 			{
+				//main body of playing the game
+				//players keep taking turns in turn order until the game ends
 				this.group[currentPlayer].play();
 				currentPlayer++;
 				if (currentPlayer >= num_players)
@@ -84,9 +87,11 @@ public class Game
 					winnerScore = this.group[index].score();
 					winner = index;
 				}
+				String text = "Player: " + index + "'s score is: " + this.group[index].score();
+				SYstem.out.println(text);
 				index++;
 			}
-			String text = "Player " + index + " wins!";
+			String text = "Player " + winner + " wins!";
 			System.out.println(text);
 		}
 	
@@ -128,12 +133,13 @@ public class Game
 			}
 		}
 	
+		//each card is an extension of this class
 		public abstract class Card {
-			public boolean isAction;
-			public int treasure;
-			public int points;
-			public String name;
-			public int cost;
+			public boolean isAction; // whether this card is an action
+			public int treasure;     // how much money this card is worth, 0 if it is not a treasure
+			public int points;       // how many victory points this card is worth
+			public String name;      // the name of this card
+			public int cost;         // how much money this card costs
 			public Card()
 			{
 				this.isAction = false;
@@ -142,7 +148,7 @@ public class Game
 				this.name = "";
 				this.cost = 0;
 			}
-			public abstract void play(Player person);
+			public abstract void play(Player person); //what happens if this card is played as an action
 		}	
 	
 		public class Copper extends Card{
@@ -502,11 +508,11 @@ public class Game
 			private ArrayList<Card> hand;
 			private ArrayList<Card> deck;
 			private ArrayList<Card> discard;
-			private ArrayList<Card> play;
-			public int actions;
-			public int gold;
-			public int buys;
-			public int id;
+			private ArrayList<Card> play;    //stores actions that have been played this turn, to prevent them from being redrawn. Added to the discard at the end of the turn.
+			public int actions;              //number of remaining actions.
+			public int gold;                 //amount of money the player has gathered this turn so far.
+			public int buys;                 //number of cards the player may buy this turn
+			public int id;                   //index of the player in the group.
 		
 			public Player()
 			{	
@@ -539,6 +545,7 @@ public class Game
 				this.id = i;
 			}
 			
+			//calculates this player's score at the end of the game
 			public int score()
 			{
 				int score = 0;
@@ -578,6 +585,8 @@ public class Game
 				}
 			}
 		
+			//discards the hand
+			//most commonly used at the end of a turn
 			private void discardHand()
 			{
 				int i = 0;
@@ -619,9 +628,13 @@ public class Game
 					i++;
 				}
 			}
-		
+			
+			//take one turn for this player
 			public void play()
 			{
+				System.out.println();
+				System.out.println("------------------------------------------------");
+				System.out.println();
 				System.out.println("Starting turn for player " + this.id);
 				this.actions = 1;
 				buys = 1;
