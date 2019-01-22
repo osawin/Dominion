@@ -6,7 +6,12 @@ public class Game
 {
 	public static void main(String[] args)
 	{
-		Instance now = new Instance();
+		int num_players = 2;
+		if (args.length > 0)
+		{
+			num_players = Integer.parseInt(args[0]);
+		}
+		Instance now = new Instance(num_players);
 		now.play();
 	}
 	public static class Instance
@@ -21,7 +26,7 @@ public class Game
 		{
 			this.sizes = new int[this.num_cards];
 			this.available = new Card[this.num_cards];
-			this.num_players = 3;
+			this.num_players = 2;
 			this.group = new Player[this.num_players];
 			int i = 0;
 			while (i < num_players)
@@ -63,6 +68,19 @@ public class Game
 			this.available[15] = new Council_Room();
 		}
 		
+		public Instance(int n_players)
+		{
+			this();
+			this.num_players = n_players;
+			this.group = new Player[this.num_players];
+			int i = 0;
+			while (i < num_players)
+			{
+				group[i] = new Player(i);
+				i++;
+			}
+		}
+		
 		//plays a single game
 		public void play() {
 			int currentPlayer = 0;
@@ -72,14 +90,14 @@ public class Game
 				//players keep taking turns in turn order until the game ends
 				this.group[currentPlayer].play();
 				currentPlayer++;
-				if (currentPlayer >= num_players)
+				if (currentPlayer >= this.num_players)
 				{
 					currentPlayer = 0;
 				}
 			}
 			int winner = 0;
 			int winnerScore = this.group[0].score();
-			int index = 1;
+			int index = 0;
 			while (index < num_players)
 			{
 				if (this.group[index].score() > winnerScore)
@@ -88,7 +106,7 @@ public class Game
 					winner = index;
 				}
 				String text = "Player: " + index + "'s score is: " + this.group[index].score();
-				SYstem.out.println(text);
+				System.out.println(text);
 				index++;
 			}
 			String text = "Player " + winner + " wins!";
