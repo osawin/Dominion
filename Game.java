@@ -150,6 +150,25 @@ public class Game
 				i++;
 			}
 		}
+		
+		public int getInt(Scanner in, String text)
+		{
+			while (true)
+			{
+				System.out.println(text);
+				try
+				{
+					int output = in.nextInt();
+					in.nextLine();
+					return output;
+				}
+				catch (Exception e)
+				{
+					in.nextLine();
+					System.out.println("Input must be an integer");
+				}
+			}
+		}
 	
 		//each card is an extension of this class
 		public abstract class Card {
@@ -240,11 +259,10 @@ public class Game
 		
 			public void play(Player person)
 			{
-				System.out.println("Pick a card costing up to 4? (Type index, 0-based, invalid indices will lead to no card being gained)");
+				String text = "Pick a card costing up to 4? (Type index, 0-based, invalid indices will lead to no card being gained)";
 				Instance.this.printAvailable();
 				Scanner in = new Scanner(System.in);
-				int index = in.nextInt();
-				in.nextLine();
+				int index = Instance.this.getInt(in, text);
 				if (index > -1 && index < 16)
 				{
 					if (Instance.this.available[index].cost <= 4 && Instance.this.sizes[index]>0)
@@ -285,10 +303,9 @@ public class Game
 			public void play(Player person)
 			{
 				person.printHand();
-				System.out.println("Which action would you like to double play? (Type index, 0-based, invalid indices will lead to no action being played)");
+				String text = "Which action would you like to double play? (Type index, 0-based, invalid indices will lead to no action being played)";
 				Scanner in = new Scanner(System.in);
-				int index = in.nextInt();
-				in.nextLine();
+				int index = Instance.this.getInt(in, text);
 				if (index >= 0 && index < person.hand.size())
 				{
 					Card played = person.hand.get(index);
@@ -312,10 +329,9 @@ public class Game
 			public void play(Player person)
 			{
 				person.printHand();
-				System.out.println("Which copper would you like to trash? (Type index, 0-based, invalid indices will lead to no copper being trashed)");
+				String text = "Which copper would you like to trash? (Type index, 0-based, invalid indices will lead to no copper being trashed)";
 				Scanner in = new Scanner(System.in);
-				int index = in.nextInt();
-				in.nextLine();
+				int index = Instance.this.getInt(in, text);
 				if (index >= 0 && index < person.hand.size())
 				{
 					if (person.hand.get(index).name == "Copper")
@@ -451,10 +467,9 @@ public class Game
 			public void play(Player person)
 			{
 				person.printHand();
-				System.out.println("Which treasure would you like to upgrade? (Type index, 0-based, invalid indices will lead to no treasure being upgraded)");
+				String text = "Which treasure would you like to upgrade? (Type index, 0-based, invalid indices will lead to no treasure being upgraded)";
 				Scanner in = new Scanner(System.in);
-				int index = in.nextInt();
-				in.nextLine();
+				int index = Instance.this.getInt(in, text);
 				if (index >= 0 && index < person.hand.size())
 				{
 					if (person.hand.get(index).name == "Copper")
@@ -668,9 +683,7 @@ public class Game
 					{
 						text = "You have " + this.actions + " actions." + text;
 					}
-					System.out.println(text);
-					index = in.nextInt();
-					in.nextLine();
+					index = Instance.this.getInt(in, text);
 					if (index >= 0 && index < this.hand.size())
 					{
 						Card played = this.hand.get(index);
@@ -703,9 +716,8 @@ public class Game
 						text += " and " + this.buys + " buys.";
 					}
 					System.out.println(text);
-					System.out.println("Which card would you like to buy? (Type index, 0-based, -1 to not buy anything)");
-					index = in.nextInt();
-					in.nextLine();
+					text = "Which card would you like to buy? (Type index, 0-based, -1 to not buy anything)";
+					index = Instance.this.getInt(in, text);
 					if (index > -1 && index < 16)
 					{
 						if (Instance.this.available[index].cost <= gold && Instance.this.sizes[index]>0)
@@ -714,6 +726,7 @@ public class Game
 							this.gold -= Instance.this.available[index].cost;
 							buys--;
 							Instance.this.sizes[index]--;
+							System.out.println("You bought " + Instance.this.available[index].name);
 						}
 						else
 						{
